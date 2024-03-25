@@ -2,7 +2,7 @@ import fastify from "fastify";
 import { env } from "./env/index.js";
 import z from 'zod'
 import { prisma } from "./lib/prisma.js";
-import pgk from "bcryptjs";
+import pgk from "bcryptjs";d
 import jwt from "@fastify/jwt";
 
 const {compare, bcrypt} = pgk
