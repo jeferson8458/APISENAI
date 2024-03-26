@@ -2,12 +2,12 @@ import fastify from "fastify";
 import { env } from "./env/index.js";
 import z from 'zod'
 import { prisma } from "./lib/prisma.js";
-import pgk from "bcryptjs";d
+import pkg from 'bcryptjs';
 import jwt from "@fastify/jwt";
 
-const {compare, bcrypt} = pgk
-
 const app = fastify()
+
+const {compare, hash} = pkg;
 
 app.register(jwt,{
     secret: env.JWT_SECRET
@@ -22,7 +22,7 @@ app.post('/users', async (request, reply) => {
 
     const {name, email, password} = registerBodySchema.parse(request.body)
 
-    const password_hash = await bcrypt.hash(password, 6)
+    const password_hash = await hash(password, 6)
 
     const userWithSameEmail = await prisma.users.findUnique({
         where:{
@@ -90,7 +90,7 @@ app.get('/me', async (request, reply) => {
 
      console.log(request.user);
 
-     return reply.status(200).send()
+     return reply.status(200).send(request.user)
 })
 
 app.listen({
