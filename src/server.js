@@ -4,10 +4,16 @@ import z from 'zod'
 import { prisma } from "./lib/prisma.js";
 import pkg from 'bcryptjs';
 import jwt from "@fastify/jwt";
+import cors from '@fastify/cors'
 
 const app = fastify()
 
 const {compare, hash} = pkg;
+
+app.register(cors,{
+    origin: "*",
+    methods: ["POST"]
+})
 
 app.register(jwt,{
     secret: env.JWT_SECRET
@@ -86,11 +92,32 @@ app.post('/authenticate', async (request, reply) => {
 })
 
 app.get('/me', async (request, reply) => {
-     await request.jwtVerify()
 
-     console.log(request.user);
+   try{
 
-     return reply.status(200).send(request.user)
+    await request.jwtVerify()
+    
+    const user = await prisma.users.findUnique({
+        where:{
+            id: request.user.sub
+        }
+    })
+
+    if (!user){
+        return reply.status(409).send({message: 'E-mail não existe'})
+    }
+
+     console.log(user);
+
+     return reply.status(200).send({
+        user:{
+            ...user,
+            password_hash: undefined
+        }
+     })
+   }catch{
+    return reply.status(401).send({message: 'Unauthorized.'})
+   }
 })
 
 app.listen({
